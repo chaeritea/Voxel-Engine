@@ -4,10 +4,14 @@
 This is an engine for generating and rendering a landscape comprised of chunks of voxels according to the user's specifications.
 
 ## Instructions / Controls
+On the WorldGen menu, adjust any of the sliders to your liking and click 'Generate!' to generate a world. Press ESC at any time to repoen the menu and generate a new world.  
+(at the time of this release, the world's seed will always be randomly generated.)
+
 WASD - Movement  
 Space - Jump  
-Left Mouse - Destroy Voxel  
+Left Mouse - Destroy Block  
 Right Mouse - Place Block  
+ESC - Open/close WorldGen menu
 
 ## Progress
 So far, I've completed most of the fundamental voxel generation and management. Given a seed and some dimensions, the engine will procedurally generate a landscape from the seed, and drop the user into the newly generated world. From there, the user can move around and place or destroy individual voxels within the world.
