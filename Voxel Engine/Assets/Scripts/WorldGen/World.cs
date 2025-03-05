@@ -31,12 +31,17 @@ public class World : MonoBehaviour
         }
     }
 
-    private void Start()
+    public void NewWorld()
     {
+        // Delete old world
+        if (_chunks != null)
+            DeleteAllChunks();
+
         // Setup world gen
         _chunks = new Dictionary<Vector3Int, Chunk>();
         _noise = new WorldNoise(_noiseScale, _heightScale);
-        _noise.GenerateNoise_Seeded(_seed);
+        _noise.GenerateNoise_Random();
+        //_noise.GenerateNoise_Seeded(_seed);
         GenerateWorld();
 
         // Setup player spawn point
@@ -92,13 +97,27 @@ public class World : MonoBehaviour
         return null;
     }
 
+    public void DeleteAllChunks()
+    {
+        // TODO: replace this
+        Chunk[] chunks = FindObjectsOfType<Chunk>();
+
+        foreach (Chunk c in chunks)
+            c.DeleteChunk();
+
+        _chunks = null;
+    }
+
     public float GetHeight(int x, int y)
     {
         return _noise.GetHeight(x, y);
     }
 
-    public void SetSeed(int seed)
-    {
-        _seed = seed;
-    }
+    public void SetSeed(int seed) { _seed = seed; }
+    public void SetWorldSizeX(int x) { _worldSizeX = x; }
+    public void SetWorldSizeY(int y) { _worldSizeY = y; }
+    public void SetWorldSizeZ(int z) { _worldSizeZ = z; }
+    public void SetChunkSize(int size) { _chunkSize = size; }
+    public void SetMountainWidth(int scale) { _noiseScale = scale; }
+    public void SetMountainHeight(int scale) { _heightScale = scale; }
 }

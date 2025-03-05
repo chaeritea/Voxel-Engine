@@ -34,8 +34,8 @@ public class PlayerController : MonoBehaviour
         _rb = GetComponent<Rigidbody>();
         _playerController = GetComponent<PlayerInput>().actions.FindActionMap("PlayerController");
 
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        //Cursor.visible = false;
+        //Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void OnEnable()
@@ -54,6 +54,9 @@ public class PlayerController : MonoBehaviour
     // Camera gets very choppy if in FixedUpdate
     private void Update()
     {
+        if (WorldSettingsManager.instance._isMenuOpen)
+            return;
+
         // Camera control
         _cameraH += _mouseSensitivity * _look.ReadValue<Vector2>().x;
         _cameraV -= _mouseSensitivity * _look.ReadValue<Vector2>().y;
@@ -66,6 +69,9 @@ public class PlayerController : MonoBehaviour
     // FixedUpdate for movement to stay consistent with low framerate
     private void FixedUpdate()
     {
+        if (WorldSettingsManager.instance._isMenuOpen)
+            return;
+
         // Movement
         _moveForward = _cam.transform.forward * _move.ReadValue<Vector2>().y;
         _moveSideways = _cam.transform.right * _move.ReadValue<Vector2>().x;
@@ -83,6 +89,9 @@ public class PlayerController : MonoBehaviour
 
     private void Jump(InputAction.CallbackContext context)
     {
+        if (WorldSettingsManager.instance._isMenuOpen)
+            return;
+
         if (_isGrounded)
         {
             _rb.AddForce(Vector3.up * _jumpForce, ForceMode.VelocityChange);
@@ -91,6 +100,9 @@ public class PlayerController : MonoBehaviour
 
     private void CreateVoxel(InputAction.CallbackContext context)
     {
+        if (WorldSettingsManager.instance._isMenuOpen)
+            return;
+
         Debug.Log("Trying to create...");
 
         RaycastHit hit;
@@ -111,6 +123,9 @@ public class PlayerController : MonoBehaviour
 
     private void DestroyVoxel(InputAction.CallbackContext context)
     {
+        if (WorldSettingsManager.instance._isMenuOpen)
+            return;
+
         Debug.Log("Trying to destroy...");
 
         RaycastHit hit;

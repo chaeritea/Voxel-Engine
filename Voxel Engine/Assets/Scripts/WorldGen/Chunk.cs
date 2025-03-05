@@ -310,8 +310,19 @@ public class Chunk : MonoBehaviour
         ReloadChunk();
     }
 
-        // Generates vertices and UVs for a specified face
-        private void GenerateFace(int x, int y, int z, int faceIndex)
+    // Clear all chunk Data
+    public void DeleteChunk()
+    {
+        _voxels = null;
+
+        _meshFilter.mesh = null;
+        _meshCollider.sharedMesh = null;
+
+        Destroy(gameObject);
+    }
+
+    // Generates vertices and UVs for a specified face
+    private void GenerateFace(int x, int y, int z, int faceIndex)
     {
         switch (faceIndex)
         {
