@@ -46,6 +46,8 @@ public class PlayerController : MonoBehaviour
         _look = _playerController.FindAction("Look");
 
         _playerController.FindAction("Jump").performed += Jump;
+        // TODO: add this
+        //_playerController.FindAction("Fly").performed += ToggleFly;
         _playerController.FindAction("Create").performed += CreateVoxel;
         _playerController.FindAction("Destroy").performed += DestroyVoxel;
     }
@@ -142,6 +144,11 @@ public class PlayerController : MonoBehaviour
             hitChunk.DestroyVoxelAt(localPos);
             Debug.Log("Destroying voxel at " + globalPos);
         }
+    }
+
+    public Vector3 GetPlayerPosition()
+    {
+        return transform.position;
     }
 
     private void OnCollisionStay(Collision collision)

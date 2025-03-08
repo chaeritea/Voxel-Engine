@@ -6,6 +6,10 @@ public class World : MonoBehaviour
 {
     public static World instance;
 
+    // TODO: find a better method for this
+    [Header("Material Dictionary")]
+    public List<Material> _materialsTEMP;
+
     [Header("WorldGen Settings")]
     [SerializeField] private int _seed = 0;
     [SerializeField] private int _worldSizeX = 5;
@@ -43,11 +47,6 @@ public class World : MonoBehaviour
         _noise.GenerateNoise_Random();
         //_noise.GenerateNoise_Seeded(_seed);
         GenerateWorld();
-
-        // Setup player spawn point
-        int playerSpawnX = _worldSizeX * _chunkSize / 2;
-        int playerSpawnZ = _worldSizeZ * _chunkSize / 2;
-        FindObjectOfType<PlayerController>().gameObject.transform.position = new Vector3(playerSpawnX, GetHeight(playerSpawnX, playerSpawnZ) + 3, playerSpawnZ);
     }
 
     public void GenerateWorld()
@@ -69,6 +68,12 @@ public class World : MonoBehaviour
                 }
             }
         }
+
+        // Setup player spawn point
+        int playerSpawnX = _worldSizeX * _chunkSize / 2;
+        int playerSpawnZ = _worldSizeZ * _chunkSize / 2;
+        FindObjectOfType<PlayerController>().gameObject.transform.position = new Vector3(playerSpawnX, GetHeight(playerSpawnX, playerSpawnZ) + 15, playerSpawnZ);
+        FindObjectOfType<PlayerController>().gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
     }
 
     public void RegenerateWorld()

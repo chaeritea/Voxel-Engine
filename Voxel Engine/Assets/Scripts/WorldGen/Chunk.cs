@@ -8,36 +8,17 @@ public class Chunk : MonoBehaviour
     private Voxel[,,] _voxels;
     private int _chunkDimension = 16;
 
-    // Mesh params
-    private List<Vector3> _verts = new List<Vector3>();
-    private List<int> _tris = new List<int>();
-    private List<Vector2> _uvs = new List<Vector2>();
-    private MeshFilter _meshFilter;
-    private MeshRenderer _meshRenderer;
-    private MeshCollider _meshCollider;
+    private Dictionary<Voxel.VoxelType, ChunkMesh> _meshDict;
 
     // Editor params
     private Color _gizmoColor;
 
     private void Start()
     {
-        _meshFilter = gameObject.AddComponent<MeshFilter>();
-        _meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        _meshCollider = gameObject.AddComponent<MeshCollider>();
+        _meshDict = new Dictionary<Voxel.VoxelType, ChunkMesh>();
 
-        GenerateMesh();
+        GenerateMeshes();
     }
-
-    //private void OnDrawGizmos()
-    //{
-    //    if (_voxels == null)
-    //    {
-    //        return;
-    //    }
-
-    //    Gizmos.color = _gizmoColor;
-    //    Gizmos.DrawCube(transform.position + new Vector3(_chunkSize / 2, _chunkSize / 2, _chunkSize / 2), new Vector3(_chunkSize, _chunkSize, _chunkSize));
-    //}
 
     // Sets up the chunk with dimensions of specified size
     public void InitChunk(int size)
@@ -52,11 +33,12 @@ public class Chunk : MonoBehaviour
 
     public void ReloadChunk()
     {
-        _verts.Clear();
-        _tris.Clear();
-        _uvs.Clear();
+        foreach (ChunkMesh cMesh in _meshDict.Values)
+        {
+            cMesh.ClearMesh();
+        }
 
-        GenerateMesh();
+        GenerateMeshes();
     }
 
     // Populates the chunk with voxels
@@ -77,20 +59,14 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    private void GenerateMesh()
+    private void GenerateMeshes()
     {
         ProcessChunk();
 
-        Mesh mesh = new Mesh();
-        mesh.vertices = _verts.ToArray();
-        mesh.triangles = _tris.ToArray();
-        mesh.uv = _uvs.ToArray();
-
-        mesh.RecalculateNormals();
-
-        _meshFilter.mesh = mesh;
-        _meshCollider.sharedMesh = mesh;
-        _meshRenderer.material = World.instance._defaultVoxelMaterial;
+        foreach (ChunkMesh cMesh in _meshDict.Values)
+        {
+            cMesh.GenerateMesh();
+        }
     }
 
     // Processes each of the voxels in the chunk iteratively
@@ -136,10 +112,28 @@ public class Chunk : MonoBehaviour
             {
                 if (facesVisible[i])
                 {
-                    GenerateFace(x, y, z, i);
+                    // make sure there exists a dict for this voxeltype
+                    if (!_meshDict.TryGetValue(v._type, out ChunkMesh cm))
+                    {
+                        CreateChunkMesh(v._type);
+                    }
+
+                    _meshDict[v._type].GenerateFace(x, y, z, i);
                 }
             }
         }
+    }
+
+    private void CreateChunkMesh(Voxel.VoxelType type)
+    {
+        Vector3 meshPos = transform.position;
+        GameObject meshObj = new GameObject($"{type} Mesh");
+        meshObj.transform.position = meshPos;
+        meshObj.transform.parent = transform;
+
+        ChunkMesh cm = meshObj.AddComponent<ChunkMesh>();
+        cm._cmKey = type;
+        _meshDict.Add(type, cm);
     }
 
     // Checks adjacent voxel to see if face is covered
@@ -218,13 +212,13 @@ public class Chunk : MonoBehaviour
             return;
         }
 
-        if (v._type == Voxel.VoxelType.Ground)
+        if (v._type == Voxel.VoxelType.Grass)
         {
             Debug.LogError("Voxel at " + pos + " is already ground");
             return;
         }
 
-        v._type = Voxel.VoxelType.Ground;
+        v._type = Voxel.VoxelType.Grass;
         v._isActive = true;
         ReloadChunk();
     }
@@ -315,105 +309,37 @@ public class Chunk : MonoBehaviour
     {
         _voxels = null;
 
-        _meshFilter.mesh = null;
-        _meshCollider.sharedMesh = null;
+        foreach (ChunkMesh cMesh in _meshDict.Values)
+        {
+            cMesh.ClearMesh();
+        }
 
         Destroy(gameObject);
     }
 
-    // Generates vertices and UVs for a specified face
-    private void GenerateFace(int x, int y, int z, int faceIndex)
-    {
-        switch (faceIndex)
-        {
-            case 0: // x+
-                _verts.Add(new Vector3(x + 1, y, z + 1));
-                _verts.Add(new Vector3(x + 1, y, z));
-                _verts.Add(new Vector3(x + 1, y + 1, z));
-                _verts.Add(new Vector3(x + 1, y + 1, z + 1));
-                _uvs.Add(new Vector2(1, 0));
-                _uvs.Add(new Vector2(1, 1));
-                _uvs.Add(new Vector2(1, 1));
-                _uvs.Add(new Vector2(1, 0));
-                break;
-            case 1: // x-
-                _verts.Add(new Vector3(x, y, z));
-                _verts.Add(new Vector3(x, y, z + 1));
-                _verts.Add(new Vector3(x, y + 1, z + 1));
-                _verts.Add(new Vector3(x, y + 1, z));
-                _uvs.Add(new Vector2(0, 0));
-                _uvs.Add(new Vector2(0, 0));
-                _uvs.Add(new Vector2(0, 1));
-                _uvs.Add(new Vector2(0, 1));
-                break;
-            case 2: // y+
-                _verts.Add(new Vector3(x, y + 1, z));
-                _verts.Add(new Vector3(x, y + 1, z + 1));
-                _verts.Add(new Vector3(x + 1, y + 1, z + 1));
-                _verts.Add(new Vector3(x + 1, y + 1, z));
-                _uvs.Add(new Vector2(0, 0));
-                _uvs.Add(new Vector2(1, 0));
-                _uvs.Add(new Vector2(1, 1));
-                _uvs.Add(new Vector2(0, 1));
-                break;
-            case 3: // y-
-                _verts.Add(new Vector3(x, y, z));
-                _verts.Add(new Vector3(x + 1, y, z));
-                _verts.Add(new Vector3(x + 1, y, z + 1));
-                _verts.Add(new Vector3(x, y, z + 1));
-                _uvs.Add(new Vector2(0, 0));
-                _uvs.Add(new Vector2(0, 1));
-                _uvs.Add(new Vector2(1, 1));
-                _uvs.Add(new Vector2(1, 0));
-                break;
-            case 4: // z+
-                _verts.Add(new Vector3(x, y, z + 1));
-                _verts.Add(new Vector3(x + 1, y, z + 1));
-                _verts.Add(new Vector3(x + 1, y + 1, z + 1));
-                _verts.Add(new Vector3(x, y + 1, z + 1));
-                _uvs.Add(new Vector2(0, 1));
-                _uvs.Add(new Vector2(0, 1));
-                _uvs.Add(new Vector2(1, 1));
-                _uvs.Add(new Vector2(1, 1));
-                break;
-            case 5: // z-
-                _verts.Add(new Vector3(x + 1, y, z));
-                _verts.Add(new Vector3(x, y, z));
-                _verts.Add(new Vector3(x, y + 1, z));
-                _verts.Add(new Vector3(x + 1, y + 1, z));
-                _uvs.Add(new Vector2(0, 0));
-                _uvs.Add(new Vector2(1, 0));
-                _uvs.Add(new Vector2(1, 0));
-                _uvs.Add(new Vector2(0, 0));
-                break;
-        }
-
-        AddTriangleIndices();
-    }
-
-    // Adds indices of a tri's vertices to the tris list
-    private void AddTriangleIndices()
-    {
-        int vertCount = _verts.Count;
-
-        _tris.Add(vertCount - 4);
-        _tris.Add(vertCount - 3);
-        _tris.Add(vertCount - 2);
-
-        _tris.Add(vertCount - 4);
-        _tris.Add(vertCount - 2);
-        _tris.Add(vertCount - 1);
-    }
-
     private Voxel.VoxelType DetermineVoxelType(float x, float y, float z)
     {
-        if (y > World.instance.GetHeight((int)x, (int)z))
+        float h = World.instance.GetHeight((int)x, (int)z);
+
+        if (y > 24 && y <= h)
+        {
+            return Voxel.VoxelType.Snow;
+        }
+        else if (y <= h && y > h - 2)
+        {
+            return Voxel.VoxelType.Grass;
+        }
+        else if (y <= 10)
+        {
+            return Voxel.VoxelType.Water;
+        }
+        else if (y > h)
         {
             return Voxel.VoxelType.Air;
         }
         else
         {
-            return Voxel.VoxelType.Ground;
+            return Voxel.VoxelType.Stone;
         }
     }
 }

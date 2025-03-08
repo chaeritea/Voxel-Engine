@@ -8,7 +8,10 @@ public class Voxel
     public enum VoxelType
     {
         Air,
-        Ground
+        Grass,
+        Stone,
+        Water,
+        Snow
     }
 
     public Vector3 _position;
