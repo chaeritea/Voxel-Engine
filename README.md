@@ -11,7 +11,8 @@ WASD - Movement
 Space - Jump  
 Left Mouse - Destroy Block  
 Right Mouse - Place Block  
-ESC - Open/close WorldGen menu
+Mouse Scroll - Pick Block  
+ESC - Open/close WorldGen menu  
 
 ## Progress
 So far, I've completed most of the fundamental voxel generation and management. Given a seed and some dimensions, the engine will procedurally generate a landscape from the seed, and drop the user into the newly generated world. From there, the user can move around and place or destroy individual voxels within the world.
