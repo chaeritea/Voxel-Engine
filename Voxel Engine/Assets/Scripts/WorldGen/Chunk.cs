@@ -203,22 +203,23 @@ public class Chunk : MonoBehaviour
         return _voxels[x, y, z];
     }
 
-    public void CreateVoxelAt(Vector3 pos)
+    public void CreateVoxelAt(Vector3 pos, Voxel.VoxelType type)
     {
         Voxel v = GetVoxelAt(pos);
 
         if (v == null)
         {
+            Debug.LogError(pos + " is not a valid position");
             return;
         }
 
-        if (v._type == Voxel.VoxelType.Grass)
+        if (v._type == type)
         {
-            Debug.LogError("Voxel at " + pos + " is already ground");
+            Debug.LogError("Voxel at " + pos + " is already " + type);
             return;
         }
 
-        v._type = Voxel.VoxelType.Grass;
+        v._type = type;
         v._isActive = true;
         ReloadChunk();
     }

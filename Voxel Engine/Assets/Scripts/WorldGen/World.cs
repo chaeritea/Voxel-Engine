@@ -18,7 +18,6 @@ public class World : MonoBehaviour
     public int _chunkSize = 16;
     [SerializeField] private int _noiseScale = 10;
     [SerializeField] private int _heightScale = 32;
-    public Material _defaultVoxelMaterial;
 
     private WorldNoise _noise;
     private Dictionary<Vector3Int, Chunk> _chunks;
@@ -33,6 +32,13 @@ public class World : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void Start()
+    {
+        NewWorld();
+
+        WorldSettingsManager.instance.CloseMenu();
     }
 
     public void NewWorld()
@@ -72,7 +78,7 @@ public class World : MonoBehaviour
         // Setup player spawn point
         int playerSpawnX = _worldSizeX * _chunkSize / 2;
         int playerSpawnZ = _worldSizeZ * _chunkSize / 2;
-        FindObjectOfType<PlayerController>().gameObject.transform.position = new Vector3(playerSpawnX, GetHeight(playerSpawnX, playerSpawnZ) + 15, playerSpawnZ);
+        FindObjectOfType<PlayerController>().gameObject.transform.position = new Vector3(playerSpawnX, GetHeight(playerSpawnX, playerSpawnZ) + 5, playerSpawnZ);
         FindObjectOfType<PlayerController>().gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
     }
 

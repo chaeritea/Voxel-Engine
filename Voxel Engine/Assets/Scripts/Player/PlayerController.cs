@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -13,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private InputActionMap _playerController;
     private InputAction _move;
     private InputAction _look;
+    private InputAction _scroll;
 
     // Movement params
     private float _cameraH = 0;
@@ -26,6 +28,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _mouseSensitivity = 1f;
 
     // Other params
+    private int _hotbarIndex = 0;
+    [SerializeField] private List<Voxel.VoxelType> _hotbar;
     [SerializeField] private float _reachDistance = 5f;
     [SerializeField] private LayerMask _voxelMask;
 
@@ -44,6 +48,7 @@ public class PlayerController : MonoBehaviour
 
         _move = _playerController.FindAction("Move");
         _look = _playerController.FindAction("Look");
+        _scroll = _playerController.FindAction("Scroll");
 
         _playerController.FindAction("Jump").performed += Jump;
         // TODO: add this
@@ -51,7 +56,6 @@ public class PlayerController : MonoBehaviour
         _playerController.FindAction("Create").performed += CreateVoxel;
         _playerController.FindAction("Destroy").performed += DestroyVoxel;
     }
-
 
     // Camera gets very choppy if in FixedUpdate
     private void Update()
@@ -66,9 +70,23 @@ public class PlayerController : MonoBehaviour
         _cameraV = Mathf.Clamp(_cameraV, -89f, 89f);
 
         _cam.transform.eulerAngles = new Vector3(_cameraV, _cameraH, 0.0f);
+
+        // Hotbar scroll
+        float scrollValue = _scroll.ReadValue<Vector2>().y;
+
+        if (scrollValue > 0)
+        {
+            if (++_hotbarIndex >= _hotbar.Count)
+                _hotbarIndex = 0;
+        }
+        else if (scrollValue < 0)
+        {
+            if (--_hotbarIndex < 0)
+                _hotbarIndex = _hotbar.Count - 1;
+        }
     }
 
-    // FixedUpdate for movement to stay consistent with low framerate
+    // FixedUpdate for anything involving physics to stay framerate agnostic
     private void FixedUpdate()
     {
         if (WorldSettingsManager.instance._isMenuOpen)
@@ -118,7 +136,7 @@ public class PlayerController : MonoBehaviour
             Chunk hitChunk = World.instance.GetChunkAt(globalPos);
             Vector3 localPos = hitChunk.transform.InverseTransformPoint(globalPos);
 
-            hitChunk.CreateVoxelAt(localPos);
+            hitChunk.CreateVoxelAt(localPos, _hotbar[_hotbarIndex]);
             Debug.Log("Creating voxel at " + globalPos);
         }
     }
@@ -149,6 +167,11 @@ public class PlayerController : MonoBehaviour
     public Vector3 GetPlayerPosition()
     {
         return transform.position;
+    }
+
+    public Voxel.VoxelType GetSelectedType()
+    {
+        return _hotbar[_hotbarIndex];
     }
 
     private void OnCollisionStay(Collision collision)
